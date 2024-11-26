@@ -41,7 +41,6 @@ class _SignInPageState extends State<SignInPage> {
       if (response.statusCode == 200) {
         // Successful sign-in
         final responseBody = json.decode(response.body);
-        print('Response body: $responseBody');
         final username = responseBody['user']?['username'] ?? 'Unknown user';
         final displayName = responseBody['user']?['display_name'] ?? 'No display name';
 

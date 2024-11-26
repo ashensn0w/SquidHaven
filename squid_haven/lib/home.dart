@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:squid_haven/signin.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert'; // To encode the message to JSON
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -14,6 +16,36 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TextEditingController _messageController = TextEditingController(); // Controller for the TextField input
   List<String> posts = []; // List to store posted messages
+
+  Future<void> _createPost(String message) async {
+    final String userId = widget.username; // You can pass the user ID or username as needed
+    const String url = 'http://10.0.2.2:3000/posts/post'; // Your API endpoint
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'userId': userId,  // Pass the user ID
+          'message': message, // Pass the message content
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post created successfully')),
+        );
+        setState(() {
+          posts.add(message); // Add the new post to the list
+        });
+      } else {
+        final errorMessage = json.decode(response.body)['error'] ?? 'Error creating post';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
 
   // Function to show the post dialog
   void _showPostDialog() {
@@ -43,8 +75,7 @@ class _HomePageState extends State<HomePage> {
                       fillColor: Colors.white,
                     ),
                     onChanged: (text) {
-                      setState(() {
-// Update character count
+                      setState(() {// Update character count
                       });
                     },
                   ),
@@ -67,11 +98,9 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 String message = _messageController.text;
                 if (message.isNotEmpty) {
-                  setState(() {
-                    posts.add(message); // Add the message to the list of posts
-                  });
+                  _createPost(message); // Send API request to create post
+                  Navigator.of(context).pop(); // Close the dialog after posting
                 }
-                Navigator.of(context).pop(); // Close the dialog after posting
               },
               child: const Text('Post'),
             ),
