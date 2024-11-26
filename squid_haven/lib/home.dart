@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:squid_haven/signin.dart';
 
 class HomePage extends StatefulWidget {
-  final String username; // Declare the username variable
+  final String username;
+  final String displayName;
 
-  const HomePage({super.key, required this.username}); // Receive username through the constructor
+  const HomePage({super.key, required this.username, required this.displayName}); // Receive displayName
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -12,7 +13,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _messageController = TextEditingController(); // Controller for the TextField input
-// Keep track of the number of characters typed
   List<String> posts = []; // List to store posted messages
 
   // Function to show the post dialog
@@ -214,7 +214,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     // Username displayed above the message
                     Text(
-                      widget.username, // Display the username
+                      widget.displayName, // Display the username
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -237,7 +237,15 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 5),
+                // const SizedBox(height: 5),
+                Text(
+                  "@${widget.username}", // Display the username
+                  style: const TextStyle(
+                    fontStyle: FontStyle.italic,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 20),
                 // Message content
                 Text(
                   posts[index], // Display the actual post message

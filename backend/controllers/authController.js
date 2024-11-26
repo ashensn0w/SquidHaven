@@ -16,16 +16,22 @@ const AuthController = {
   },
   signIn: (req, res) => {
     const { username, password } = req.body;
-
+  
     UserModel.getUserByUsername(username, (err, user) => {
       if (err || !user) return res.status(404).json({ error: 'User not found' });
-
+  
       bcrypt.compare(password, user.password, (err, isMatch) => {
         if (err || !isMatch) return res.status(401).json({ error: 'Invalid credentials' });
-        res.status(200).json({ message: 'Login successful', user });
+        res.status(200).json({
+          message: 'Login successful',
+          user: {
+            username: user.username,
+            displayName: user.display_name
+          }
+        });
       });
     });
-  }
+  }  
 };
 
 module.exports = AuthController;

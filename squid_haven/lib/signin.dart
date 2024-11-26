@@ -16,7 +16,6 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  // Function to handle user sign-in
   Future<void> signIn() async {
     final String username = usernameController.text;
     final String password = passwordController.text;
@@ -42,12 +41,15 @@ class _SignInPageState extends State<SignInPage> {
       if (response.statusCode == 200) {
         // Successful sign-in
         final responseBody = json.decode(response.body);
+        print('Response body: $responseBody');
         final username = responseBody['user']?['username'] ?? 'Unknown user';
-        print('User signed in: $username');
+        final displayName = responseBody['user']?['display_name'] ?? 'No display name';
+
+        print('User signed in: $displayName - $username');
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sign-in successful")));
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage(username: username)),
+          MaterialPageRoute(builder: (context) => HomePage(username: username, displayName: displayName)), // Pass displayName
         );
       } else {
         // Error occurred
