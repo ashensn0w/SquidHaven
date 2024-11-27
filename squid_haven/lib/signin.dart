@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // For JSON encoding
+import 'dart:convert';
 import 'signup.dart';
 import 'home.dart';
 
@@ -42,13 +42,12 @@ class _SignInPageState extends State<SignInPage> {
         // Successful sign-in
         final responseBody = json.decode(response.body);
         final username = responseBody['user']?['username'] ?? 'Unknown user';
-        final displayName = responseBody['user']?['display_name'] ?? 'No display name';
 
-        print('User signed in: $displayName - $username');
+        print('User signed in: $username');
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sign-in successful")));
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage(username: username, displayName: displayName)), // Pass displayName
+          MaterialPageRoute(builder: (context) => HomePage(username: username)),
         );
       } else {
         // Error occurred

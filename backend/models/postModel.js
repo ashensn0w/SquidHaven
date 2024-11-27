@@ -7,9 +7,9 @@ const PostModel = {
   },
   getPosts: (callback) => {
     const query = `
-      SELECT users.username, posts.message, posts.id
+      SELECT users.display_name, users.username, posts.message, posts.id
       FROM posts
-      JOIN users ON posts.user_id = users.id
+      JOIN users ON posts.user_id = users.username
     `;
     db.all(query, [], callback);
   },

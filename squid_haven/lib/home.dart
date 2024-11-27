@@ -5,9 +5,8 @@ import 'dart:convert'; // To encode the message to JSON
 
 class HomePage extends StatefulWidget {
   final String username;
-  final String displayName;
 
-  const HomePage({super.key, required this.username, required this.displayName}); // Receive displayName
+  const HomePage({super.key, required this.username}); // Receive displayName
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -15,7 +14,48 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _messageController = TextEditingController(); // Controller for the TextField input
-  List<String> posts = []; // List to store posted messages
+  List<Map<String, String>> posts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPosts(); // Fetch posts when the page is initialized
+  }
+
+  Future<void> _fetchPosts() async {
+    const String url = 'http://10.0.2.2:3000/posts/posts'; // Your API endpoint
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      // Log the response status and body
+      print('Response Status: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body); // Decode the response into a list
+        if (mounted) {
+          setState(() {
+            posts = data.map((post) => {
+              'message': post['message'] as String,
+              'username': post['username'] as String,
+              'display_name': post['display_name'] as String
+            }).toList(); // Include username and display_name along with the message
+          });
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to fetch posts')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
 
   Future<void> _createPost(String message) async {
     final String userId = widget.username; // You can pass the user ID or username as needed
@@ -31,19 +71,21 @@ class _HomePageState extends State<HomePage> {
         }),
       );
 
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Post created successfully')),
-        );
-        setState(() {
-          posts.add(message); // Add the new post to the list
-        });
-      } else {
-        final errorMessage = json.decode(response.body)['error'] ?? 'Error creating post';
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+      if (mounted) {
+        if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Post created successfully')),
+          );
+          _fetchPosts(); // Refresh the posts after creating a new post
+        } else {
+          final errorMessage = json.decode(response.body)['error'] ?? 'Error creating post';
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
@@ -210,15 +252,13 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: const Color(0xFFFBFBFB),
         elevation: 0, // Optional: removes shadow from the AppBar
       ),
-      body: posts.isEmpty // Check if posts list is empty
-          ? const Center( // Show this message when no posts are available
-        child: Text(
-          'There are no posts from all the users. Post now!',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+      body: posts.isEmpty
+          ? const Center(
+        child: Text('There are no posts from all the users. Post now!',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
       )
           : ListView.builder(
-        itemCount: posts.length, // Display the number of posts
+        itemCount: posts.length,
         itemBuilder: (context, index) {
           return Container(
             margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
@@ -239,17 +279,24 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // This will push the menu to the right
                   children: [
-                    // Username displayed above the message
-                    Text(
-                      widget.displayName, // Display the username
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                    // Display the display name
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          posts[index]['display_name'] ?? 'No Display Name', // Display the display name
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '@${posts[index]['username'] ?? 'No Username'}', // Display the username
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ],
                     ),
-                    // Triple dot menu
+                    // Triple dot menu with delete option
                     PopupMenuButton(
                       onSelected: (value) {
                         if (value == 'delete') {
@@ -266,20 +313,10 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                // const SizedBox(height: 5),
-                Text(
-                  "@${widget.username}", // Display the username
-                  style: const TextStyle(
-                    fontStyle: FontStyle.italic,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // Message content
-                Text(
-                  posts[index], // Display the actual post message
-                  style: const TextStyle(fontSize: 16),
-                ),
+                const SizedBox(height: 8),
+                Text(posts[index]['message'] ?? 'No message'),
+                const SizedBox(height: 8),
+                // Optionally, you can add more actions here
               ],
             ),
           );
