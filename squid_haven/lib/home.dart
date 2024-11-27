@@ -28,10 +28,6 @@ class _HomePageState extends State<HomePage> {
     try {
       final response = await http.get(Uri.parse(url));
 
-      // Log the response status and body
-      print('Response Status: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body); // Decode the response into a list
         if (mounted) {

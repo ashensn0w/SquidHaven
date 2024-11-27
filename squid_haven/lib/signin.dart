@@ -43,7 +43,6 @@ class _SignInPageState extends State<SignInPage> {
         final responseBody = json.decode(response.body);
         final username = responseBody['user']?['username'] ?? 'Unknown user';
 
-        print('User signed in: $username');
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sign-in successful")));
         Navigator.pushReplacement(
           context,
@@ -52,13 +51,11 @@ class _SignInPageState extends State<SignInPage> {
       } else {
         // Error occurred
         final errorMessage = json.decode(response.body)['error'] ?? 'An error occurred.';
-        print('SignIn Error: $errorMessage');
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
       }
     } catch (e) {
       // Network error or other issues
       if (!mounted) return;
-      print('SignIn Exception: $e');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
@@ -99,7 +96,7 @@ class _SignInPageState extends State<SignInPage> {
                 controller: usernameController,
                 decoration: const InputDecoration(
                   hintText: 'Enter your username',
-                  border: const OutlineInputBorder(),
+                  border: OutlineInputBorder(),
                   filled: true,
                   fillColor: Colors.white,
                 ),
