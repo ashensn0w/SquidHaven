@@ -38,6 +38,12 @@ class _HomePageState extends State<HomePage> {
               'display_name': post['display_name'] as String,
               'postId': post['id'].toString(),
             }).toList();
+
+            // Sort posts by 'created_at' (if it's available in the response)
+            posts.sort((a, b) {
+              // Compare based on 'created_at', falling back to an empty string if 'created_at' is null
+              return (b['created_at'] ?? '').compareTo(a['created_at'] ?? '');
+            });// Sort descending
           });
         }
       } else {
@@ -46,13 +52,11 @@ class _HomePageState extends State<HomePage> {
             const SnackBar(content: Text('Failed to fetch posts')),
           );
         }
-        // Debugging statement for HTTP response failure
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
-      // Debugging statement for caught exceptions
     }
   }
 
@@ -115,7 +119,6 @@ class _HomePageState extends State<HomePage> {
       }
     }
   }
-
 
   // Function to show the post dialog
   void _showPostDialog() {
