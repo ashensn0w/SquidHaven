@@ -29,10 +29,12 @@ class _HomePageState extends State<HomePage> {
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body); // Decode the response into a list
+        final List<dynamic> data = json.decode(
+            response.body); // Decode the response into a list
         if (mounted) {
           setState(() {
-            posts = data.map((post) => {
+            posts = data.map((post) =>
+            {
               'message': post['message'] as String,
               'username': post['username'] as String,
               'display_name': post['display_name'] as String,
@@ -43,7 +45,7 @@ class _HomePageState extends State<HomePage> {
             posts.sort((a, b) {
               // Compare based on 'created_at', falling back to an empty string if 'created_at' is null
               return (b['created_at'] ?? '').compareTo(a['created_at'] ?? '');
-            });// Sort descending
+            }); // Sort descending
           });
         }
       } else {
@@ -55,13 +57,15 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e')));
       }
     }
   }
 
   Future<void> _createPost(String message) async {
-    final String userId = widget.username; // You can pass the user ID or username as needed
+    final String userId = widget
+        .username; // You can pass the user ID or username as needed
     const String url = 'http://10.0.2.2:3000/posts/post'; // Your API endpoint
 
     try {
@@ -69,7 +73,7 @@ class _HomePageState extends State<HomePage> {
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'userId': userId,  // Pass the user ID
+          'userId': userId, // Pass the user ID
           'message': message, // Pass the message content
         }),
       );
@@ -81,13 +85,16 @@ class _HomePageState extends State<HomePage> {
           );
           _fetchPosts(); // Refresh the posts after creating a new post
         } else {
-          final errorMessage = json.decode(response.body)['error'] ?? 'Error creating post';
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+          final errorMessage = json.decode(response.body)['error'] ??
+              'Error creating post';
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(errorMessage)));
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -105,7 +112,8 @@ class _HomePageState extends State<HomePage> {
           );
           _fetchPosts(); // Refresh the posts after deleting one
         } else {
-          final errorMessage = json.decode(response.body)['error'] ?? 'Error deleting post';
+          final errorMessage = json.decode(response.body)['error'] ??
+              'Error deleting post';
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(errorMessage)),
           );
@@ -139,8 +147,10 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   TextField(
                     controller: _messageController,
-                    maxLines: null, // Allow multiple lines of text
-                    maxLength: 300, // Restrict text to 300 characters
+                    maxLines: null,
+                    // Allow multiple lines of text
+                    maxLength: 300,
+                    // Restrict text to 300 characters
                     decoration: const InputDecoration(
                       hintText: 'Type your message...',
                       border: OutlineInputBorder(),
@@ -148,7 +158,7 @@ class _HomePageState extends State<HomePage> {
                       fillColor: Colors.white,
                     ),
                     onChanged: (text) {
-                      setState(() {// Update character count
+                      setState(() { // Update character count
                       });
                     },
                   ),
@@ -219,28 +229,27 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F0E8), // Set background color to #F1F0E8
+      backgroundColor: const Color(0xFFF1F0E8),
+      // Set background color to #F1F0E8
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Space between title and username/logout button
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Space between title and username/logout button
           children: [
-            // Display the app title at the leftmost
             const Text(
               'SquidHaven',
               style: TextStyle(fontSize: 20),
             ),
-            // Display "Hi, [username]!" and the logout button at the rightmost
             Row(
               children: [
                 Text(
-                  'Hi, ${widget.username}!', // Access the username via widget.username
+                  'Hi, ${widget.username}!',
                   style: const TextStyle(fontSize: 16),
                 ),
                 IconButton(
                   icon: const Icon(Icons.logout),
                   onPressed: () {
-                    // Show confirmation dialog before logging out
                     _confirmLogout();
                   },
                 ),
@@ -249,102 +258,104 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         backgroundColor: const Color(0xFFFBFBFB),
-        elevation: 0, // Optional: removes shadow from the AppBar
+        elevation: 0,
       ),
       body: posts.isEmpty
           ? const Center(
-        child: Text('There are no posts from all the users. Post now!',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        child: Text(
+          'There are no posts from all the users. Post now!',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
       )
-          : ListView.builder(
-        itemCount: posts.length,
-        itemBuilder: (context, index) {
-          return Container(
-            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white, // Background color for each post container
-              borderRadius: BorderRadius.circular(8), // Rounded corners
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  spreadRadius: 2,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2), // Shadow position
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // This will push the menu to the right
-                  children: [
-                    // Display the display name
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          posts[index]['display_name'] ?? 'No Display Name', // Display the display name
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '@${posts[index]['username'] ?? 'No Username'}', // Display the username
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                    // Triple dot menu with delete option
-                    PopupMenuButton(
-                      onSelected: (value) async {
-                        if (value == 'delete') {
-                          final postId = posts[index]['postId']; // Get the postId as a string
-                          if (postId != null) {
-                            // Convert the postId to an integer before passing it to the deletePost function
-                            final postIdInt = int.tryParse(postId); // Convert the postId to an int
-                            if (postIdInt != null) {
-                              await _deletePost(postIdInt); // Call the deletePost function with the integer postId
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Invalid post ID')),
-                              );
+          : RefreshIndicator(
+        onRefresh: _fetchPosts, // Refresh when the user pulls down
+        child: ListView.builder(
+          itemCount: posts.length,
+          itemBuilder: (context, index) {
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 2,
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            posts[index]['display_name'] ?? 'No Display Name',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '@${posts[index]['username'] ?? 'No Username'}',
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      PopupMenuButton(
+                        onSelected: (value) async {
+                          if (value == 'delete') {
+                            final postId = posts[index]['postId'];
+                            if (postId != null) {
+                              final postIdInt = int.tryParse(postId);
+                              if (postIdInt != null) {
+                                await _deletePost(postIdInt);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Invalid post ID')),
+                                );
+                              }
                             }
                           }
-                        }
-                      },
-                      itemBuilder: (context) => const [
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Text('Delete'),
-                        ),
-                      ],
-                      icon: const Icon(Icons.more_vert), // Triple dot icon
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(posts[index]['message'] ?? 'No message'),
-                const SizedBox(height: 8),
-                // Optionally, you can add more actions here
-              ],
-            ),
-          );
-        },
+                        },
+                        itemBuilder: (context) =>
+                        const [
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Delete'),
+                          ),
+                        ],
+                        icon: const Icon(Icons.more_vert),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(posts[index]['message'] ?? 'No message'),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Show the post dialog when the button is clicked
           _showPostDialog();
         },
         label: const Row(
           children: [
-            Icon(Icons.create), // Pen icon
-            SizedBox(width: 8), // Space between icon and text
-            Text('Post'), // Text beside the icon
+            Icon(Icons.create),
+            SizedBox(width: 8),
+            Text('Post'),
           ],
         ),
-        backgroundColor: Colors.blue, // Background color of the button
+        backgroundColor: Colors.blue,
       ),
     );
   }
