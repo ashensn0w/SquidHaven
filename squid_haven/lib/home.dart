@@ -102,31 +102,65 @@ class _HomePageState extends State<HomePage> {
   Future<void> _deletePost(int postId) async {
     final String url = 'http://10.0.2.2:3000/posts/post/$postId'; // Your delete API endpoint
 
-    try {
-      final response = await http.delete(Uri.parse(url));
+    // Show the confirmation dialog first (synchronously)
+    bool confirmDeletion = await _showDeleteConfirmationDialog();
 
-      if (mounted) { // Check if the widget is still mounted
-        if (response.statusCode == 200) {
+    // If the user confirms, proceed with the delete operation
+    if (confirmDeletion) {
+      try {
+        final response = await http.delete(Uri.parse(url));
+
+        if (mounted) {
+          if (response.statusCode == 200) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Post deleted successfully')),
+            );
+            _fetchPosts(); // Refresh the posts after deleting one
+          } else {
+            final errorMessage = json.decode(response.body)['error'] ??
+                'Error deleting post';
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(errorMessage)),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Post deleted successfully')),
-          );
-          _fetchPosts(); // Refresh the posts after deleting one
-        } else {
-          final errorMessage = json.decode(response.body)['error'] ??
-              'Error deleting post';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(errorMessage)),
+            SnackBar(content: Text('Error: $e')),
           );
         }
       }
-    } catch (e) {
-      if (mounted) { // Check if the widget is still mounted
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
     }
   }
+
+// This function shows the confirmation dialog and returns the user's response
+  Future<bool> _showDeleteConfirmationDialog() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this post?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false); // User cancels deletion
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true); // User confirms deletion
+              },
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    ) ?? false; // Return false if the user presses outside the dialog
+  }
+
 
   // Function to show the post dialog
   void _showPostDialog() {
@@ -314,18 +348,16 @@ class _HomePageState extends State<HomePage> {
                             if (postId != null) {
                               final postIdInt = int.tryParse(postId);
                               if (postIdInt != null) {
-                                await _deletePost(postIdInt);
+                                await _deletePost(postIdInt); // Now triggers the confirmation dialog
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Invalid post ID')),
+                                  const SnackBar(content: Text('Invalid post ID')),
                                 );
                               }
                             }
                           }
                         },
-                        itemBuilder: (context) =>
-                        const [
+                        itemBuilder: (context) => const [
                           PopupMenuItem(
                             value: 'delete',
                             child: Text('Delete'),
