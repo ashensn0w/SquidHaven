@@ -35,8 +35,9 @@ class _HomePageState extends State<HomePage> {
             posts = data.map((post) => {
               'message': post['message'] as String,
               'username': post['username'] as String,
-              'display_name': post['display_name'] as String
-            }).toList(); // Include username and display_name along with the message
+              'display_name': post['display_name'] as String,
+              'postId': post['id'].toString(),
+            }).toList();
           });
         }
       } else {
@@ -45,11 +46,13 @@ class _HomePageState extends State<HomePage> {
             const SnackBar(content: Text('Failed to fetch posts')),
           );
         }
+        // Debugging statement for HTTP response failure
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
+      // Debugging statement for caught exceptions
     }
   }
 
@@ -84,6 +87,35 @@ class _HomePageState extends State<HomePage> {
       }
     }
   }
+
+  Future<void> _deletePost(int postId) async {
+    final String url = 'http://10.0.2.2:3000/posts/post/$postId'; // Your delete API endpoint
+
+    try {
+      final response = await http.delete(Uri.parse(url));
+
+      if (mounted) { // Check if the widget is still mounted
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Post deleted successfully')),
+          );
+          _fetchPosts(); // Refresh the posts after deleting one
+        } else {
+          final errorMessage = json.decode(response.body)['error'] ?? 'Error deleting post';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage)),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) { // Check if the widget is still mounted
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
 
   // Function to show the post dialog
   void _showPostDialog() {
@@ -141,38 +173,6 @@ class _HomePageState extends State<HomePage> {
                 }
               },
               child: const Text('Post'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _confirmDelete(int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Post'),
-          content: const Text('Are you sure you want to delete this post?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog without action
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  posts.removeAt(index); // Remove post from the list
-                });
-                Navigator.of(context).pop(); // Close dialog after deletion
-              },
-              child: const Text(
-                'Delete',
-                style: TextStyle(color: Colors.red),
-              ),
             ),
           ],
         );
@@ -294,13 +294,24 @@ class _HomePageState extends State<HomePage> {
                     ),
                     // Triple dot menu with delete option
                     PopupMenuButton(
-                      onSelected: (value) {
+                      onSelected: (value) async {
                         if (value == 'delete') {
-                          _confirmDelete(index); // Call delete confirmation
+                          final postId = posts[index]['postId']; // Get the postId as a string
+                          if (postId != null) {
+                            // Convert the postId to an integer before passing it to the deletePost function
+                            final postIdInt = int.tryParse(postId); // Convert the postId to an int
+                            if (postIdInt != null) {
+                              await _deletePost(postIdInt); // Call the deletePost function with the integer postId
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Invalid post ID')),
+                              );
+                            }
+                          }
                         }
                       },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(
                           value: 'delete',
                           child: Text('Delete'),
                         ),

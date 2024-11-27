@@ -15,8 +15,8 @@ const PostModel = {
   },
   deletePost: (postId, callback) => {
     const query = `DELETE FROM posts WHERE id = ?`;
-    db.run(query, [postId], callback);
-  }
+    db.run(query, [postId], callback); 
+  }  
 };
 
 module.exports = PostModel;
